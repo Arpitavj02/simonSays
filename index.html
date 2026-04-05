@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simon Says Pro</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <h1>Simon Says 🎮</h1>
+  <h2 id="level-title">Press Start</h2>
+
+  <!-- USER INPUT -->
+  <input type="text" id="username" placeholder="Enter your name">
+
+  <!-- STATS -->
+  <div class="stats">
+    <p>Score: <span id="score">0</span></p>
+    <p>High Score: <span id="high-score">0</span></p>
+    <p>🔥 Streak: <span id="streak">0</span></p>
+    <p>👥 Players Today: <span id="players">0</span></p>
+  </div>
+
+  <!-- START BUTTON -->
+  <button id="start-btn">Start Game</button>
+
+  <!-- GAME BUTTONS -->
+  <div class="container">
+    <div class="btn red" id="red"></div>
+    <div class="btn green" id="green"></div>
+    <div class="btn blue" id="blue"></div>
+    <div class="btn yellow" id="yellow"></div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div id="leaderboard"></div>
+
+  <!-- IMPORTANT: ONLY THIS SCRIPT -->
+  <script type="module" src="script.js"></script>
+
+</body>
+</html>
