@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, orderBy, limit, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 🔥 YOUR FIREBASE CONFIG HERE
+// FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyDuHDaprKkH1XRU1NXvj-NjcJRYFJJu3oU",
   authDomain: "simonsays-8aaf5.firebaseapp.com",
@@ -15,7 +15,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// GAME LOGIC
+// GAME VARIABLES
 const buttonColors = ["red", "blue", "green", "yellow"];
 let gamePattern = [];
 let userClickedPattern = [];
@@ -26,6 +26,11 @@ let score = 0;
 let highScore = localStorage.getItem("highScore") || 0;
 document.getElementById("high-score").textContent = highScore;
 
+// LOAD STREAK ON PAGE LOAD
+document.getElementById("streak").textContent =
+  localStorage.getItem("streak") || 0;
+
+// START BUTTON
 document.getElementById("start-btn").addEventListener("click", () => {
   if (!started) {
     updateStreak();
@@ -33,6 +38,7 @@ document.getElementById("start-btn").addEventListener("click", () => {
   }
 });
 
+// BUTTON CLICK
 document.querySelectorAll(".btn").forEach(button => {
   button.addEventListener("click", function () {
     if (!started) return;
@@ -47,6 +53,7 @@ document.querySelectorAll(".btn").forEach(button => {
   });
 });
 
+// GAME START
 function startGame() {
   level = 0;
   score = 0;
@@ -56,6 +63,7 @@ function startGame() {
   nextSequence();
 }
 
+// NEXT LEVEL
 function nextSequence() {
   userClickedPattern = [];
   level++;
@@ -70,18 +78,32 @@ function nextSequence() {
   flash(randomColor);
 }
 
+// CHECK ANSWER
 function checkAnswer(currentLevel) {
   if (userClickedPattern[currentLevel] === gamePattern[currentLevel]) {
-
     if (userClickedPattern.length === gamePattern.length) {
       setTimeout(nextSequence, 800);
     }
-
   } else {
     gameOver();
   }
 }
 
+// SAVE BEST SCORE (IMPORTANT FIX)
+async function saveScore(name, score) {
+  const userRef = doc(db, "scores", name);
+  const userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists() || score > userSnap.data().score) {
+    await setDoc(userRef, {
+      name: name,
+      score: score,
+      date: new Date().toDateString()
+    });
+  }
+}
+
+// GAME OVER
 async function gameOver() {
   playSound("wrong");
 
@@ -94,23 +116,19 @@ async function gameOver() {
     document.getElementById("high-score").textContent = highScore;
   }
 
-  // SAVE SCORE
   const name = document.getElementById("username").value || "Guest";
 
-  await addDoc(collection(db, "scores"), {
-    name: name,
-    score: score,
-    date: new Date().toDateString()
-  });
+  await saveScore(name, score);
 
-  loadLeaderboard();
-  getTodayPlayers();
+  await loadLeaderboard();
+  await getTodayPlayers();
 
   setTimeout(() => document.body.classList.remove("game-over"), 200);
 
   started = false;
 }
 
+// FLASH EFFECT
 function flash(color) {
   const btn = document.getElementById(color);
   btn.classList.add("pressed");
@@ -118,45 +136,54 @@ function flash(color) {
   playSound(color);
 }
 
+// BUTTON ANIMATION
 function animatePress(color) {
   const btn = document.getElementById(color);
   btn.classList.add("pressed");
   setTimeout(() => btn.classList.remove("pressed"), 100);
 }
 
+// SOUND
 function playSound(name) {
   const audio = new Audio(`sounds/${name}.mp3`);
   audio.play();
 }
-// 🔥 LEADERBOARD
+
+// LEADERBOARD (WITH RANKS 🏆)
 async function loadLeaderboard() {
   const q = query(collection(db, "scores"), orderBy("score", "desc"), limit(5));
   const snapshot = await getDocs(q);
 
   let html = "<h3>🏆 Leaderboard</h3>";
 
+  let rank = 1;
   snapshot.forEach(doc => {
     const data = doc.data();
-    html += `<p>${data.name}: ${data.score}</p>`;
+    html += `<p>#${rank} ${data.name} — ${data.score}</p>`;
+    rank++;
   });
 
   document.getElementById("leaderboard").innerHTML = html;
 }
 
-// 👥 PLAYERS TODAY
+// PLAYERS TODAY (UNIQUE USERS)
 async function getTodayPlayers() {
   const today = new Date().toDateString();
   const snapshot = await getDocs(collection(db, "scores"));
 
-  let count = 0;
+  let uniquePlayers = new Set();
+
   snapshot.forEach(doc => {
-    if (doc.data().date === today) count++;
+    const data = doc.data();
+    if (data.date === today) {
+      uniquePlayers.add(data.name);
+    }
   });
 
-  document.getElementById("players").textContent = count;
+  document.getElementById("players").textContent = uniquePlayers.size;
 }
 
-// 🔥 STREAK
+// STREAK SYSTEM
 function updateStreak() {
   const today = new Date().toDateString();
   const lastPlayed = localStorage.getItem("lastPlayed");
@@ -179,6 +206,6 @@ function updateStreak() {
   document.getElementById("streak").textContent = streak;
 }
 
-// LOAD ON START
+// LOAD DATA ON START
 loadLeaderboard();
 getTodayPlayers();
