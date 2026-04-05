@@ -1,43 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simon Says Pro</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simon Says</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- Add inside <head> in index.html -->
+<meta property="og:title" content="Simon Says — Daily Memory Challenge" />
+<meta property="og:description" content="Test your memory. Climb the global leaderboard." />
+<meta property="og:image" content="https://your-deployed-url/preview.png" />
+<meta property="og:url" content="https://your-deployed-url" />
 </head>
 <body>
 
-  <h1>Simon Says 🎮</h1>
-  <h2 id="level-title">Press Start</h2>
+  <!-- ANIMATED BG BLOBS -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="blob blob-4"></div>
+  <div class="grain"></div>
 
-  <!-- USER INPUT -->
-  <input type="text" id="username" placeholder="Enter your name">
+  <!-- ══════════════════════════════
+       LOGIN SCREEN
+  ══════════════════════════════ -->
+  <div id="login-screen" class="screen active">
+    <div class="login-wrap">
 
-  <!-- STATS -->
-  <div class="stats">
-    <p>Score: <span id="score">0</span></p>
-    <p>High Score: <span id="high-score">0</span></p>
-    <p>🔥 Streak: <span id="streak">0</span></p>
-    <p>👥 Players Today: <span id="players">0</span></p>
+      <!-- LEFT: Branding -->
+      <div class="login-left">
+        <div class="logo-lockup">
+          <span class="logo-eyebrow">Daily Memory Game</span>
+          <h1 class="logo-main">
+            <span class="logo-simon">Simon</span>
+            <span class="logo-says">Says.</span>
+          </h1>
+          <p class="logo-desc">How far can your memory take you? Play daily, build a streak, top the board.</p>
+        </div>
+
+        <div class="live-stats">
+          <div class="live-stat-card">
+            <div class="live-stat-icon">👾</div>
+            <div>
+              <span class="live-stat-num" id="login-players-today">—</span>
+              <span class="live-stat-label">Played Today</span>
+            </div>
+          </div>
+          <div class="live-stat-card">
+            <div class="live-stat-icon">🏆</div>
+            <div>
+              <span class="live-stat-num" id="login-top-score">—</span>
+              <span class="live-stat-label">Today's High Score</span>
+            </div>
+          </div>
+          <div class="live-stat-card">
+            <div class="live-stat-icon">⭐</div>
+            <div>
+              <span class="live-stat-num" id="login-all-time">—</span>
+              <span class="live-stat-label">All-Time Best</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mini leaderboard preview -->
+        <div class="lb-preview">
+          <div class="lb-preview-title">🔥 Top Players</div>
+          <div id="login-lb-preview"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Login form -->
+      <div class="login-right">
+        <div class="login-card">
+          <div class="login-card-tag">Ready to play?</div>
+          <h2 class="login-card-title">Enter your name</h2>
+          <p class="login-card-sub">Your score will be saved to the global leaderboard.</p>
+
+          <div class="name-input-wrap">
+            <input
+              type="text"
+              id="login-name"
+              placeholder="e.g. Alex, Priya, Sam…"
+              maxlength="20"
+              autocomplete="off"
+            />
+            <div class="input-underline"></div>
+          </div>
+
+          <button class="play-btn" id="login-btn" onclick="loginUser()">
+            <span>Start Playing</span>
+            <div class="play-btn-arrow">→</div>
+          </button>
+
+          <p class="login-fine">No sign-up required. Just a name.</p>
+        </div>
+      </div>
+
+    </div>
   </div>
 
-  <!-- START BUTTON -->
-  <button id="start-btn">Start Game</button>
+  <!-- ══════════════════════════════
+       GAME SCREEN
+  ══════════════════════════════ -->
+  <div id="game-screen" class="screen">
+    <div class="game-layout">
 
-  <!-- GAME BUTTONS -->
-  <div class="container">
-    <div class="btn red" id="red"></div>
-    <div class="btn green" id="green"></div>
-    <div class="btn blue" id="blue"></div>
-    <div class="btn yellow" id="yellow"></div>
+      <!-- TOP BAR -->
+      <header class="game-topbar">
+        <div class="topbar-logo">
+          Simon<b>Says.</b>
+        </div>
+        <div class="topbar-right">
+          <div class="player-tag">
+            <div class="ptag-avatar" id="avatar-letter">?</div>
+            <span id="player-name-display">Player</span>
+          </div>
+          <button class="back-btn" onclick="logoutUser()" title="Change player">← Back</button>
+        </div>
+      </header>
+
+      <!-- STAT STRIP -->
+      <div class="stat-strip">
+        <div class="sstat">
+          <span class="sstat-v" id="score">0</span>
+          <span class="sstat-l">Score</span>
+        </div>
+        <div class="sstat highlight">
+          <span class="sstat-v" id="high-score">0</span>
+          <span class="sstat-l">Your Best</span>
+        </div>
+        <div class="sstat">
+          <span class="sstat-v" id="streak">0</span>
+          <span class="sstat-l">🔥 Streak</span>
+        </div>
+        <div class="sstat">
+          <span class="sstat-v" id="players">—</span>
+          <span class="sstat-l">Today</span>
+        </div>
+      </div>
+
+      <!-- LEVEL -->
+      <div class="level-label" id="level-title">Press START to begin</div>
+
+      <!-- SIMON BOARD -->
+      <div class="board-outer">
+        <div class="simon-board">
+          <div class="qbtn red"    id="red"></div>
+          <div class="qbtn green"  id="green"></div>
+          <div class="qbtn blue"   id="blue"></div>
+          <div class="qbtn yellow" id="yellow"></div>
+          <div class="center-hub">
+            <button id="start-btn">
+              <span id="start-btn-text">START</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 
-  <!-- LEADERBOARD -->
-  <div id="leaderboard"></div>
+  <!-- ══════════════════════════════
+       END SCREEN
+  ══════════════════════════════ -->
+  <div id="end-screen" class="screen">
+    <div class="end-wrap">
 
-  <!-- IMPORTANT: ONLY THIS SCRIPT -->
+      <div class="end-hero">
+        <div class="end-emoji" id="end-emoji">💥</div>
+        <h2 class="end-title" id="end-title">Game Over</h2>
+        <p class="end-sub" id="end-sub">You reached level <b id="end-level">0</b></p>
+      </div>
+
+      <div class="end-score-row">
+        <div class="escore-block">
+          <span id="end-score">0</span>
+          <label>Your Score</label>
+        </div>
+        <div class="escore-block best">
+          <span id="end-best">0</span>
+          <label>Personal Best</label>
+        </div>
+        <div class="escore-block">
+          <span id="end-rank">#—</span>
+          <label>Global Rank</label>
+        </div>
+      </div>
+
+      <div class="end-lb">
+        <div class="end-lb-header">
+          <span>🏆 Leaderboard</span>
+          <span class="end-lb-tag" id="lb-count"></span>
+        </div>
+        <div id="leaderboard-list"></div>
+      </div>
+
+      <div class="end-actions">
+        <button class="again-btn" onclick="playAgain()">Play Again</button>
+        <button class="change-btn" onclick="logoutUser()">Change Name</button>
+      </div>
+
+    </div>
+  </div>
+
   <script type="module" src="script.js"></script>
-
 </body>
 </html>
